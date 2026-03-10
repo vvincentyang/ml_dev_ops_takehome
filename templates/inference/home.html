@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Tagger</title>
+    <style>
+        :root {
+            --page-bg: #f4efe6;
+            --page-accent: #dfe9dd;
+            --surface: #fffdf8;
+            --surface-strong: #f1eadf;
+            --text-primary: #1f2933;
+            --text-muted: #52606d;
+            --border-soft: #d9cfbf;
+            --border-strong: #bcae97;
+            --button-bg: #2e5e4e;
+            --button-bg-hover: #24493d;
+            --button-text: #f8faf7;
+            --tag-bg: #e7efe4;
+            --tag-text: #264237;
+            --shadow-soft: 0 18px 45px rgba(31, 41, 51, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Avenir Next", "Segoe UI", sans-serif;
+            color: var(--text-primary);
+            background:
+                radial-gradient(circle at top left, var(--page-accent), transparent 35%),
+                linear-gradient(180deg, var(--page-bg), var(--surface-strong));
+        }
+
+        .page-shell {
+            width: min(960px, calc(100% - 2rem));
+            margin: 0 auto;
+            padding: 3rem 0 4rem;
+        }
+
+        .hero {
+            margin-bottom: 1.5rem;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            margin-bottom: 0.75rem;
+            padding: 0.35rem 0.7rem;
+            border: 1px solid var(--border-soft);
+            border-radius: 999px;
+            background: var(--surface);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            margin-bottom: 0.75rem;
+            font-size: clamp(2.3rem, 5vw, 4rem);
+            line-height: 0.96;
+        }
+
+        .hero-copy {
+            max-width: 42rem;
+            color: var(--text-muted);
+            font-size: 1.05rem;
+            line-height: 1.6;
+        }
+
+        .grid {
+            display: grid;
+            gap: 1.25rem;
+        }
+
+        @media (min-width: 820px) {
+            .grid {
+                grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+                align-items: start;
+            }
+        }
+
+        .panel {
+            padding: 1.5rem;
+            border: 1px solid var(--border-soft);
+            border-radius: 24px;
+            background: color-mix(in srgb, var(--surface) 94%, white 6%);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .panel h2 {
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+        }
+
+        .panel-copy {
+            margin-bottom: 1.2rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .upload-form {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .field-label {
+            display: block;
+            margin-bottom: 0.55rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .upload-form input[type="file"] {
+            width: 100%;
+            padding: 0.95rem;
+            border: 1px dashed var(--border-strong);
+            border-radius: 18px;
+            background: var(--surface-strong);
+            color: var(--text-primary);
+        }
+
+        .upload-form button {
+            width: fit-content;
+            min-width: 10rem;
+            padding: 0.9rem 1.25rem;
+            border: 0;
+            border-radius: 999px;
+            background: var(--button-bg);
+            color: var(--button-text);
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 160ms ease, transform 160ms ease;
+        }
+
+        .upload-form button:hover {
+            background: var(--button-bg-hover);
+            transform: translateY(-1px);
+        }
+
+        .error-list {
+            margin: 0;
+            padding-left: 1.15rem;
+            color: var(--text-muted);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.85rem;
+            margin: 1.25rem 0 1.5rem;
+        }
+
+        .stat {
+            padding: 0.95rem 1rem;
+            border-radius: 18px;
+            background: var(--surface-strong);
+            border: 1px solid var(--border-soft);
+        }
+
+        .stat-label {
+            display: block;
+            margin-bottom: 0.3rem;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        .stat-value {
+            font-size: 1.02rem;
+            font-weight: 700;
+        }
+
+        .tag-list {
+            display: grid;
+            gap: 0.8rem;
+            padding: 0;
+            margin: 0;
+            list-style: none;
+        }
+
+        .tag-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.95rem 1rem;
+            border: 1px solid var(--border-soft);
+            border-radius: 18px;
+            background: var(--surface);
+        }
+
+        .tag-label {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.3rem 0.7rem;
+            border-radius: 999px;
+            background: var(--tag-bg);
+            color: var(--tag-text);
+            font-weight: 700;
+        }
+
+        .tag-score {
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .placeholder {
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <section class="hero">
+            <h1>Bobyard ML/Dev Ops Takehome Project</h1>
+            <p class="hero-copy">Upload an image and run real ONNX inference with SqueezeNet 1.1.</p>
+        </section>
+
+        <section class="grid">
+            <section class="panel">
+                <h2>Run inference</h2>
+                <p class="panel-copy">Choose a local file, submit once, and inspect the synchronous result immediately.</p>
+
+                <form method="post" enctype="multipart/form-data" class="upload-form">
+                    {% csrf_token %}
+                    <div>
+                        <label class="field-label" for="{{ form.image.id_for_label }}">Image file</label>
+                        {{ form.image }}
+                    </div>
+
+                    {% if form.image.errors %}
+                        <ul class="error-list">
+                            {% for error in form.image.errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+
+                    <button type="submit">Run inference</button>
+                </form>
+            </section>
+
+            <section class="panel">
+                {% if result %}
+                    <h2>Prediction</h2>
+                    <p class="panel-copy">Top ImageNet labels returned from the current ONNX SqueezeNet 1.1 model.</p>
+
+                    <div class="stats">
+                        <div class="stat">
+                            <span class="stat-label">Model</span>
+                            <span class="stat-value">{{ result.model }}</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Image size</span>
+                            <span class="stat-value">{{ result.image.width }} x {{ result.image.height }}</span>
+                        </div>
+                    </div>
+
+                    <ul class="tag-list">
+                        {% for tag in result.tags %}
+                            <li class="tag-item">
+                                <span class="tag-label">{{ tag.label }}</span>
+                                <span class="tag-score">score {{ tag.score }}</span>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <h2>Prediction</h2>
+                    <p class="placeholder">
+                        Results appear here after upload. Try a dog photo, some fruit, or a street scene and inspect
+                        the top ImageNet-style labels that SqueezeNet returns.
+                    </p>
+                {% endif %}
+            </section>
+        </section>
+    </main>
+</body>
+</html>
