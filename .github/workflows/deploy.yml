@@ -8,6 +8,10 @@ on:
   release:
     types: [published]  # deploys to production on GitHub release
 
+permissions:
+  id-token: write   # required for OIDC token generation
+  contents: read
+
 env:
   AWS_REGION: us-west-2
   ECR_REPOSITORY: ml-app
