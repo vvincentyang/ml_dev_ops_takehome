@@ -1,0 +1,161 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches:
+      - main        # auto-deploys to dev
+      - staging     # auto-deploys to staging
+  release:
+    types: [published]  # deploys to production on GitHub release
+
+env:
+  AWS_REGION: us-west-2
+  ECR_REPOSITORY: ml-app
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 1. Build Docker image and push to ECR
+  # ──────────────────────────────────────────────
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+    outputs:
+      image_uri: ${{ steps.build.outputs.image_uri }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials (OIDC — no stored keys)
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecr
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build
+        env:
+          REGISTRY: ${{ steps.ecr-login.outputs.registry }}
+        run: |
+          # Use release tag (e.g. v1.0.0) for production releases, run number for everything else
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            IMAGE_TAG="${{ github.ref_name }}"
+          else
+            IMAGE_TAG="${{ github.run_number }}"
+          fi
+          IMAGE_URI="${REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
+          docker build -t "${IMAGE_URI}" .
+          docker push "${IMAGE_URI}"
+          echo "image_uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
+
+  # ──────────────────────────────────────────────
+  # 2. Deploy to Dev (on push to main)
+  # ──────────────────────────────────────────────
+  deploy-dev:
+    name: Deploy → Dev
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: dev
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecs-dev
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Render ECS task definition with new image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/task-definitions/task-definition-dev.json
+          container-name: ml-app
+          image: ${{ needs.build.outputs.image_uri }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ml-app-dev
+          cluster: ml-app-dev
+          wait-for-service-stability: true
+
+  # ──────────────────────────────────────────────
+  # 3. Deploy to Staging (on push to staging branch)
+  # ──────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy → Staging
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/staging'
+    environment: staging   # requires manual approval in GitHub environment settings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecs-staging
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Render ECS task definition with new image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/task-definitions/task-definition-staging.json
+          container-name: ml-app
+          image: ${{ needs.build.outputs.image_uri }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ml-app-staging
+          cluster: ml-app-staging
+          wait-for-service-stability: true
+
+  # ──────────────────────────────────────────────
+  # 4. Deploy to Production (on GitHub release)
+  # ──────────────────────────────────────────────
+  deploy-prod:
+    name: Deploy → Production
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    environment: production  # requires manual approval in GitHub environment settings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecs-prod
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Render ECS task definition with new image
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infra/task-definitions/task-definition-prod.json
+          container-name: ml-app
+          image: ${{ needs.build.outputs.image_uri }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: ml-app-prod
+          cluster: ml-app-prod
+          wait-for-service-stability: true
