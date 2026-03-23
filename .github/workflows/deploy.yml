@@ -24,7 +24,7 @@ jobs:
     name: Build & Push Image
     runs-on: ubuntu-latest
     outputs:
-      image_uri: ${{ steps.build.outputs.image_uri }}
+      image_tag: ${{ steps.build.outputs.image_tag }}
 
     steps:
       - name: Checkout code
@@ -54,9 +54,10 @@ jobs:
           IMAGE_URI="${REGISTRY}/${{ env.ECR_REPOSITORY }}:${IMAGE_TAG}"
           docker build -t "${IMAGE_URI}" .
           docker push "${IMAGE_URI}"
-          echo "image_uri=${IMAGE_URI}" >> "$GITHUB_OUTPUT"
-          echo "DEBUG image_uri=${IMAGE_URI}"
-          echo "DEBUG GITHUB_OUTPUT contents:"; cat "$GITHUB_OUTPUT"
+          # Output only the tag — the full URI contains the account ID (a secret)
+          # and GitHub redacts job outputs that contain secret values.
+          # Each deploy job reconstructs the full URI using secrets.AWS_ACCOUNT_ID.
+          echo "image_tag=${IMAGE_TAG}" >> "$GITHUB_OUTPUT"
 
   # ──────────────────────────────────────────────
   # 2. Deploy to Dev (on push to main)
@@ -84,7 +85,7 @@ jobs:
         with:
           task-definition: infra/task-definitions/task-definition-dev.json
           container-name: ml-app
-          image: ${{ needs.build.outputs.image_uri }}
+          image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build.outputs.image_tag }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
@@ -120,7 +121,7 @@ jobs:
         with:
           task-definition: infra/task-definitions/task-definition-staging.json
           container-name: ml-app
-          image: ${{ needs.build.outputs.image_uri }}
+          image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build.outputs.image_tag }}
 
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
@@ -156,8 +157,9 @@ jobs:
         with:
           task-definition: infra/task-definitions/task-definition-prod.json
           container-name: ml-app
-          image: ${{ needs.build.outputs.image_uri }}
+          image: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ env.AWS_REGION }}.amazonaws.com/${{ env.ECR_REPOSITORY }}:${{ needs.build.outputs.image_tag }}
 
+          
       - name: Deploy to ECS
         uses: aws-actions/amazon-ecs-deploy-task-definition@v2
         with:
