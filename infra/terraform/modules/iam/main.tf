@@ -19,10 +19,12 @@ resource "aws_iam_openid_connect_provider" "github" {
 # ── Shared trust policy helpers ───────────────────────────────────────────────
 data "aws_iam_policy_document" "oidc_trust" {
   for_each = {
+    # Build job has no environment — sub contains the ref
     ecr     = "${local.github_subject_prefix}:*"
-    dev     = "${local.github_subject_prefix}:ref:refs/heads/main"
-    staging = "${local.github_subject_prefix}:ref:refs/heads/staging"
-    prod    = "${local.github_subject_prefix}:ref:refs/tags/*"
+    # Deploy jobs have environment: <name> set — sub contains the environment name, not the ref
+    dev     = "${local.github_subject_prefix}:environment:dev"
+    staging = "${local.github_subject_prefix}:environment:staging"
+    prod    = "${local.github_subject_prefix}:environment:production"
   }
 
   statement {
