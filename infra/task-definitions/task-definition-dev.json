@@ -10,6 +10,9 @@
       "name": "ml-app",
       "image": "203159929121.dkr.ecr.us-west-2.amazonaws.com/ml-app:latest",
       "essential": true,
+      "environment": [
+        { "name": "ENVIRONMENT", "value": "dev" }
+      ],
       "portMappings": [
         {
           "containerPort": 8000,

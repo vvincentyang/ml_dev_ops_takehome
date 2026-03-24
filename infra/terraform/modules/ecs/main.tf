@@ -46,6 +46,10 @@ resource "aws_ecs_task_definition" "this" {
       image     = var.image_uri
       essential = true
 
+      environment = [
+        { name = "ENVIRONMENT", value = var.env }
+      ]
+
       portMappings = [
         {
           containerPort = 8000
