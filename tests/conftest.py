@@ -2,6 +2,7 @@ import io
 from unittest.mock import MagicMock
 
 import pytest
+from django.core.files.uploadedfile import SimpleUploadedFile
 from PIL import Image
 
 from inference.services import InferenceResult, TagPrediction
@@ -33,8 +34,7 @@ def mock_classifier(monkeypatch):
 
 @pytest.fixture
 def png_image():
-    """Minimal valid PNG as an in-memory file."""
+    """Minimal valid PNG as a named upload file Django's ImageField accepts."""
     buf = io.BytesIO()
     Image.new("RGB", (32, 32), color=(100, 149, 237)).save(buf, format="PNG")
-    buf.seek(0)
-    return buf
+    return SimpleUploadedFile("test.png", buf.getvalue(), content_type="image/png")
