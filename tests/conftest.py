@@ -25,10 +25,11 @@ MOCK_RESULT = InferenceResult(
 
 @pytest.fixture
 def mock_classifier(monkeypatch):
-    """Replaces the real classifier with a mock that returns MOCK_RESULT."""
+    """Replaces the real classifier and telemetry with mocks."""
     mock = MagicMock()
     mock.classify.return_value = MOCK_RESULT
     monkeypatch.setattr("inference.views.get_pretrained_image_classifier", lambda: mock)
+    monkeypatch.setattr("inference.views.record_inference_metrics", MagicMock())
     return mock
 
 
