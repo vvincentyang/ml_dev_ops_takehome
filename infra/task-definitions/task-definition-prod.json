@@ -13,7 +13,7 @@
       "environment": [
         { "name": "ENVIRONMENT", "value": "prod" },
         { "name": "MAX_CONCURRENT_INFERENCES", "value": "4" },
-        { "name": "REDIS_URL", "value": "redis://ml-app-redis-prod.internal:6379/0" }
+        { "name": "REDIS_URL", "value": "redis://ml-app-redis-prod.b0mwv1.ng.0001.usw2.cache.amazonaws.com:6379/0" }
       ],
       "portMappings": [
         {
