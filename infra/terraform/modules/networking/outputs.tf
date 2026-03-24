@@ -37,3 +37,19 @@ output "target_group_arn_suffix" {
   description = "Target group ARN suffix used in CloudWatch metric dimensions"
   value       = aws_lb_target_group.this.arn_suffix
 }
+
+output "certificate_arn" {
+  description = "ACM certificate ARN for the environment domain"
+  value       = aws_acm_certificate_validation.this.certificate_arn
+}
+
+output "cert_validation_records" {
+  description = "CNAME records to add in Cloudflare to validate the ACM certificate"
+  value = [
+    for dvo in aws_acm_certificate.this.domain_validation_options : {
+      name  = dvo.resource_record_name
+      type  = dvo.resource_record_type
+      value = dvo.resource_record_value
+    }
+  ]
+}

@@ -160,6 +160,37 @@ Resources:
               - logs:*
             Resource: '*'
 
+          # ACM (TLS certificates for ALB HTTPS)
+          - Sid: ACM
+            Effect: Allow
+            Action:
+              - acm:*
+            Resource: '*'
+
+          # Route53 (DNS validation records + ALB alias records)
+          - Sid: Route53
+            Effect: Allow
+            Action:
+              - route53:*
+            Resource: '*'
+
+          # ElastiCache (Redis clusters, subnet groups, security group rules)
+          - Sid: ElastiCache
+            Effect: Allow
+            Action:
+              - elasticache:*
+            Resource: '*'
+
+          # CloudWatch Dashboards
+          - Sid: CloudWatchDashboards
+            Effect: Allow
+            Action:
+              - cloudwatch:PutDashboard
+              - cloudwatch:GetDashboard
+              - cloudwatch:DeleteDashboards
+              - cloudwatch:ListDashboards
+            Resource: '*'
+
           # Secrets Manager (read-only; used if secrets are referenced in task defs)
           - Sid: SecretsManagerRead
             Effect: Allow

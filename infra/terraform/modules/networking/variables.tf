@@ -8,6 +8,11 @@ variable "vpc_cidr" {
   type        = string
 }
 
+variable "domain" {
+  description = "FQDN for this environment (e.g. ml-app-dev.diyer.us) — used for ACM cert and Route53 alias"
+  type        = string
+}
+
 variable "tags" {
   description = "Tags to apply to all resources"
   type        = map(string)

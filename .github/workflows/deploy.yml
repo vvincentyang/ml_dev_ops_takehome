@@ -18,10 +18,34 @@ env:
 
 jobs:
   # ──────────────────────────────────────────────
-  # 1. Build Docker image and push to ECR
+  # 1. Run tests
+  # ──────────────────────────────────────────────
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: Run tests
+        run: pytest --tb=short
+
+  # ──────────────────────────────────────────────
+  # 2. Build Docker image and push to ECR
   # ──────────────────────────────────────────────
   build:
     name: Build & Push Image
+    needs: test
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.build.outputs.image_tag }}

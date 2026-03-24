@@ -11,7 +11,9 @@
       "image": "203159929121.dkr.ecr.us-west-2.amazonaws.com/ml-app:latest",
       "essential": true,
       "environment": [
-        { "name": "ENVIRONMENT", "value": "dev" }
+        { "name": "ENVIRONMENT", "value": "dev" },
+        { "name": "MAX_CONCURRENT_INFERENCES", "value": "1" },
+        { "name": "REDIS_URL", "value": "redis://ml-app-redis-dev.b0mwv1.ng.0001.usw2.cache.amazonaws.com:6379/0" }
       ],
       "portMappings": [
         {

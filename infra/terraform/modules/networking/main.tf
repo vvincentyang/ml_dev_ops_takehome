@@ -99,6 +99,14 @@ resource "aws_security_group" "alb" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  ingress {
+    description = "HTTPS"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -158,10 +166,46 @@ resource "aws_lb_target_group" "this" {
   tags = var.tags
 }
 
+# ── ACM Certificate ───────────────────────────────────────────────────────────
+# DNS validation records must be added manually in Cloudflare.
+# After apply, see the `cert_validation_records` output for the CNAMEs to add.
+# terraform apply will wait here until ACM confirms the cert is issued.
+resource "aws_acm_certificate" "this" {
+  domain_name       = var.domain
+  validation_method = "DNS"
+  tags              = merge(var.tags, { Name = "ml-app-${var.env}-cert" })
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_acm_certificate_validation" "this" {
+  certificate_arn = aws_acm_certificate.this.arn
+}
+
+# ── ALB Listeners ─────────────────────────────────────────────────────────────
 resource "aws_lb_listener" "http" {
   load_balancer_arn = aws_lb.this.arn
   port              = 80
   protocol          = "HTTP"
+
+  default_action {
+    type = "redirect"
+    redirect {
+      port        = "443"
+      protocol    = "HTTPS"
+      status_code = "HTTP_301"
+    }
+  }
+}
+
+resource "aws_lb_listener" "https" {
+  load_balancer_arn = aws_lb.this.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+  certificate_arn   = aws_acm_certificate_validation.this.certificate_arn
 
   default_action {
     type             = "forward"

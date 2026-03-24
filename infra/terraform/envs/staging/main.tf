@@ -35,6 +35,7 @@ module "networking" {
   source   = "../../modules/networking"
   env      = local.env
   vpc_cidr = "10.1.0.0/16"
+  domain   = "ml-app-staging.diyer.us"
   tags     = local.tags
 }
 
@@ -53,6 +54,20 @@ module "ecs" {
   target_group_arn        = module.networking.alb_target_group_arn
   private_subnet_ids      = module.networking.private_subnet_ids
   ecs_sg_id               = module.networking.ecs_sg_id
+
+  tags = local.tags
+}
+
+module "elasticache" {
+  source = "../../modules/elasticache"
+  env    = local.env
+
+  vpc_id             = module.networking.vpc_id
+  private_subnet_ids = module.networking.private_subnet_ids
+  ecs_sg_id          = module.networking.ecs_sg_id
+
+  node_type          = "cache.t4g.micro"
+  num_cache_clusters = 1
 
   tags = local.tags
 }
@@ -78,4 +93,14 @@ output "alb_dns_name" {
 output "dashboard_name" {
   description = "CloudWatch dashboard name"
   value       = module.monitoring.dashboard_name
+}
+
+output "redis_url" {
+  description = "Redis URL — update REDIS_URL in task-definition-staging.json after first apply"
+  value       = module.elasticache.redis_url
+}
+
+output "cert_validation_records" {
+  description = "Add these CNAMEs in Cloudflare to validate the ACM certificate"
+  value       = module.networking.cert_validation_records
 }

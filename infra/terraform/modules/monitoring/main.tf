@@ -11,7 +11,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       # ── Row 1: title ──────────────────────────────────────────────────────────
       {
         type   = "text"
-        x      = 0; y = 0; width = 24; height = 1
+        x      = 0
+        y      = 0
+        width  = 24
+        height = 1
         properties = {
           markdown = "## ML App — ${var.env}  |  Inference Pipeline"
         }
@@ -20,7 +23,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       # ── Row 2: inference timing breakdown ────────────────────────────────────
       {
         type   = "metric"
-        x      = 0; y = 1; width = 8; height = 6
+        x      = 0
+        y      = 1
+        width  = 8
+        height = 6
         properties = {
           title  = "Total Inference Duration (ms)"
           view   = "timeSeries"
@@ -36,7 +42,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 8; y = 1; width = 8; height = 6
+        x      = 8
+        y      = 1
+        width  = 8
+        height = 6
         properties = {
           title  = "Model (ONNX) Duration (ms)"
           view   = "timeSeries"
@@ -51,7 +60,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 16; y = 1; width = 8; height = 6
+        x      = 16
+        y      = 1
+        width  = 8
+        height = 6
         properties = {
           title  = "Preprocessing Duration (ms)"
           view   = "timeSeries"
@@ -68,7 +80,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       # ── Row 3: model quality + input characteristics ──────────────────────────
       {
         type   = "metric"
-        x      = 0; y = 7; width = 12; height = 6
+        x      = 0
+        y      = 7
+        width  = 12
+        height = 6
         properties = {
           title  = "Top-1 Confidence Score"
           view   = "timeSeries"
@@ -82,7 +97,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 12; y = 7; width = 12; height = 6
+        x      = 12
+        y      = 7
+        width  = 12
+        height = 6
         properties = {
           title  = "Input Image Size (pixels)"
           view   = "timeSeries"
@@ -98,7 +116,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       # ── Row 4: ALB traffic ────────────────────────────────────────────────────
       {
         type   = "metric"
-        x      = 0; y = 13; width = 8; height = 6
+        x      = 0
+        y      = 13
+        width  = 8
+        height = 6
         properties = {
           title  = "ALB Request Count"
           view   = "timeSeries"
@@ -111,7 +132,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 8; y = 13; width = 8; height = 6
+        x      = 8
+        y      = 13
+        width  = 8
+        height = 6
         properties = {
           title  = "ALB Target Response Time (s)"
           view   = "timeSeries"
@@ -125,7 +149,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 16; y = 13; width = 8; height = 6
+        x      = 16
+        y      = 13
+        width  = 8
+        height = 6
         properties = {
           title  = "ALB 5xx Errors"
           view   = "timeSeries"
@@ -141,7 +168,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       # ── Row 5: ECS resource utilisation ──────────────────────────────────────
       {
         type   = "metric"
-        x      = 0; y = 19; width = 12; height = 6
+        x      = 0
+        y      = 19
+        width  = 12
+        height = 6
         properties = {
           title  = "ECS CPU Utilisation (%)"
           view   = "timeSeries"
@@ -154,7 +184,10 @@ resource "aws_cloudwatch_dashboard" "this" {
       },
       {
         type   = "metric"
-        x      = 12; y = 19; width = 12; height = 6
+        x      = 12
+        y      = 19
+        width  = 12
+        height = 6
         properties = {
           title  = "ECS Memory Utilisation (%)"
           view   = "timeSeries"
