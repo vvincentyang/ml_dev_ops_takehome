@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from functools import lru_cache
+import time
 from typing import BinaryIO
 
 import numpy
@@ -26,6 +27,8 @@ class InferenceResult:
     tags: list[TagPrediction]
     width: int
     height: int
+    preprocessing_ms: float
+    model_ms: float
 
 
 class PretrainedImageClassifier:
@@ -48,9 +51,15 @@ class PretrainedImageClassifier:
         with Image.open(uploaded_image) as image:
             normalized_image = ImageOps.exif_transpose(image).convert("RGB")
             width, height = normalized_image.size
-            input_tensor = self._build_input_tensor(normalized_image)
 
+            t0 = time.perf_counter()
+            input_tensor = self._build_input_tensor(normalized_image)
+            preprocessing_ms = (time.perf_counter() - t0) * 1000
+
+        t0 = time.perf_counter()
         raw_output = self.session.run(None, {self.input_name: input_tensor})[0]
+        model_ms = (time.perf_counter() - t0) * 1000
+
         scores = self._normalize_scores(numpy.asarray(raw_output).squeeze())
         top_indices = numpy.argsort(scores)[-3:][::-1]
         predictions = [
@@ -66,6 +75,8 @@ class PretrainedImageClassifier:
             tags=predictions,
             width=width,
             height=height,
+            preprocessing_ms=preprocessing_ms,
+            model_ms=model_ms,
         )
 
     def _build_input_tensor(self, image: Image.Image) -> numpy.ndarray:
