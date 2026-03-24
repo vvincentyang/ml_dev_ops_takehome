@@ -27,6 +27,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://ml-app-dev.diyer.us',
+    'https://ml-app-staging.diyer.us',
+    'https://ml-app-prod.diyer.us',
+]
+
 
 # Application definition
 
