@@ -59,7 +59,25 @@ module "ecs" {
   tags = local.tags
 }
 
+module "monitoring" {
+  source     = "../../modules/monitoring"
+  env        = local.env
+  aws_region = var.aws_region
+
+  alb_arn_suffix          = module.networking.alb_arn_suffix
+  target_group_arn_suffix = module.networking.target_group_arn_suffix
+  ecs_cluster_name        = module.ecs.cluster_name
+  ecs_service_name        = module.ecs.service_name
+
+  tags = local.tags
+}
+
 output "alb_dns_name" {
   description = "Dev ALB DNS — access the app at http://<this value>"
   value       = module.networking.alb_dns_name
+}
+
+output "dashboard_name" {
+  description = "CloudWatch dashboard name"
+  value       = module.monitoring.dashboard_name
 }
